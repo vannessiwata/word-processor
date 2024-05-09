@@ -8,6 +8,9 @@ function Login(props) {
     const onSuccess = (res) => {
         props.setLogin(true);
         props.user(jwtDecode(res.credential));
+        console.log((res.credential));
+        localStorage.setItem('accessToken', res.credential);
+        console.log(jwtDecode(res.credential));
     }
 
     const onFailure = (res) => {
