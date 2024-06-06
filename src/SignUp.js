@@ -33,7 +33,7 @@ function SignUp() {
 
     async function onSubmit(data){
         try{
-            const response = await axios.post('http://iwata.my.id/api/register', {
+            const response = await axios.post('https://iwata.my.id/api/register', {
                 "name": data.fullName,
                 "email" : data.email,
                 "password" : data.password

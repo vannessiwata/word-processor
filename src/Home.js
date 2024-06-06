@@ -54,7 +54,7 @@ export default function Home(){
         var token = localStorage.getItem('accessToken');
         setToken(token);
         if (token) {
-            fetch(`http://iwata.my.id/api/user`, {
+            fetch(`https://iwata.my.id/api/user`, {
                 headers : {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
@@ -93,7 +93,7 @@ export default function Home(){
 
     async function getDocuments(id){
         try{
-            const response = await axios.get(`http://iwata.my.id/api/documents/get-by-user?userId=${id}&search=${searchFilter}`, {
+            const response = await axios.get(`https://iwata.my.id/api/documents/get-by-user?userId=${id}&search=${searchFilter}`, {
               headers : {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
@@ -156,7 +156,7 @@ export default function Home(){
       const combinedContent = documentIV.toString() + encryptedContent.toString();
 
       try{
-        const response = await axios.post(`http://iwata.my.id/api/documents`, {
+        const response = await axios.post(`https://iwata.my.id/api/documents`, {
             document_id: newId,
             title: data.title,
             password: cipher,

@@ -23,7 +23,7 @@ function SignIns() {
 
     async function onSubmit(data){
         try{
-            const response = await axios.post('http://iwata.my.id/api/login', {
+            const response = await axios.post('https://iwata.my.id/api/login', {
                 "email" : data.email,
                 "password" : data.password
             });

@@ -35,7 +35,7 @@ export default function OTP(props) {
             "user_id": "${props.user.user_id}"
           }`;
     
-          const response = await axios.post('http://iwata.my.id/api/verify-otp', JSON.parse(param), {
+          const response = await axios.post('https://iwata.my.id/api/verify-otp', JSON.parse(param), {
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',

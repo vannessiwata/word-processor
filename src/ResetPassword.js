@@ -54,7 +54,7 @@ export default function ResetPassword(props) {
         }`;
 
         try{
-        const response = await axios.post('http://iwata.my.id/api/reset-password', JSON.parse(param), {
+        const response = await axios.post('https://iwata.my.id/api/reset-password', JSON.parse(param), {
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',

@@ -28,7 +28,7 @@ function VerifyOTP(props) {
 
     useEffect(async () => {
         try{
-            const response = await axios.post('http://iwata.my.id/api/send-email-verification', {
+            const response = await axios.post('https://iwata.my.id/api/send-email-verification', {
                 "email" : props.email,
                 "name" : props.name,
                 "type" : "verifikasi"
@@ -50,7 +50,7 @@ function VerifyOTP(props) {
 
     async function onSubmit(data){
         try{
-            const response = await axios.post('http://iwata.my.id/api/verify-email', {
+            const response = await axios.post('https://iwata.my.id/api/verify-email', {
                 "email" : props.email,
                 "otp" : data.otp.join(""),
             }, {

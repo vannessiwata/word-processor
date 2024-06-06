@@ -66,7 +66,7 @@ export default function WordProcessor() {
       var token = localStorage.getItem('accessToken');
       setToken(token);
       if (token) {
-          fetch(`http://iwata.my.id/api/user`, {
+          fetch(`https://iwata.my.id/api/user`, {
               headers : {
                   'Content-Type': 'application/json',
                   'Accept': 'application/json',
@@ -229,7 +229,7 @@ export default function WordProcessor() {
         "user_id": "${user.user_id}",
         "type": "${type}"
       }`;
-      const response = await axios.post('http://iwata.my.id/api/send-email-otp', JSON.parse(param), {
+      const response = await axios.post('https://iwata.my.id/api/send-email-otp', JSON.parse(param), {
         headers:{
           'Content-Type': 'application/json',
           'Accept': 'application/json',
