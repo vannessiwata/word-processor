@@ -3,6 +3,7 @@ import SignIns from "./SignIns"
 import axios from 'axios'
 import { Fragment } from 'react'
 import { Disclosure, Menu, Transition } from '@headlessui/react'
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMagnifyingGlass, faLock, faFile } from '@fortawesome/free-solid-svg-icons'
 import { Input, FloatButton, Modal, Button } from 'antd'
