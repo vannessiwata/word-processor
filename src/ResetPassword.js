@@ -21,6 +21,8 @@ export default function ResetPassword(props) {
         confirmPassword: '',
     };
 
+    const token = window.localStorage.getItem('accessToken');
+
     const { control, handleSubmit, formState: { errors } } = useForm({
         resolver: zodResolver(validationSchema),
         defaultValues: defaultValues
@@ -28,20 +30,22 @@ export default function ResetPassword(props) {
 
     const onSubmit = async (data) => {
         var key = CryptoJS.enc.Utf8.parse('keysuntukenkripsipasswordskripsi');
-        var iv = CryptoJS.enc.Utf8.parse('keyskeduaskripsi');
-        var passwordToArray = CryptoJS.enc.Utf8.parse(data.password);
-        var encrypted = CryptoJS.AES.encrypt(passwordToArray, key, { iv: iv });
-        var cipher = encrypted.toString();
+        var iv = CryptoJS.lib.WordArray.random(32);
+
+        var pwIv = CryptoJS.enc.Utf8.parse(iv);
+        var passwordToArray = CryptoJS.enc.Utf8.parse(data.password.slice(0, 32));
+        var encrypted = CryptoJS.AES.encrypt(passwordToArray, key, { iv: pwIv });
+        var cipher = iv.toString() + encrypted.toString();
 
         var repetition = Math.ceil(32 / data.password.length);
         var password = data.password.repeat(repetition).slice(0, 32);
-        var ownerTo16 = props.ownerDocument.slice(0,16);
+        var documentIv = CryptoJS.enc.Hex.parse(props.content.slice(0, 32));
 
         var docKey = CryptoJS.enc.Utf8.parse(password);
-        var docIV = CryptoJS.enc.Utf8.parse(ownerTo16);
-        var cipherText = CryptoJS.AES.encrypt(props.content, docKey, { iv: docIV });
+        var docIV = CryptoJS.enc.Utf8.parse(documentIv);
+        var cipherText = CryptoJS.AES.encrypt(props.content.slice(32), docKey, { iv: docIV });
 
-        var document = cipherText.toString();
+        var document = documentIv.toString() + cipherText.toString();
 
         var param = `{
             "document_id": "${props.documentId}",
@@ -50,7 +54,13 @@ export default function ResetPassword(props) {
         }`;
 
         try{
-        const response = await axios.post('http://127.0.0.1:8000/api/reset-password', JSON.parse(param));
+        const response = await axios.post('http://iwata.my.id/api/reset-password', JSON.parse(param), {
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': 'Bearer ' + token,
+            }
+        });
         
         if(response.status == 200){
             props.setAccessGranted(true);

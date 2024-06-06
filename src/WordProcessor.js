@@ -50,6 +50,7 @@ export default function WordProcessor() {
   const [isInputPassword, setIsInputPassword] = useState(true);
   const [openOtpModal, setOpenOtpModal] = useState(false);
   const [passwordTrue, setPasswordTrue] = useState(false);
+  const [token, setToken] = useState(window.localStorage.getItem('accessToken'));
 
   const navigate = useNavigate();
   const defaultValues = {
@@ -63,8 +64,9 @@ export default function WordProcessor() {
 
   useEffect(() => {
       var token = localStorage.getItem('accessToken');
+      setToken(token);
       if (token) {
-          fetch(`http://127.0.0.1:8000/api/user`, {
+          fetch(`http://iwata.my.id/api/user`, {
               headers : {
                   'Content-Type': 'application/json',
                   'Accept': 'application/json',
@@ -90,16 +92,19 @@ export default function WordProcessor() {
 
   useEffect(() => {
     if(user){
-      if(user.google_id == ownerDocument){
+      if(user.user_id == ownerDocument){
         setIsOwner(true);
       }
     }
   }, [user, ownerDocument]);
 
   useEffect(() => {
-    const s = io('http://localhost:3001');
+    const towken = localStorage.getItem('accessToken');
+    const s = io('http://localhost:3001', {
+      query: { token: towken }
+    });
     setSocket(s);
-    
+
     return () => {
       s.disconnect();
     }
@@ -114,6 +119,7 @@ export default function WordProcessor() {
         setDocumentTitle(document.title);
         setOwnerDocument(document.owner);
         setContent(document.content);
+        setPassword(document.password);
 
         const testJson = JSON.parse(document.content);
         
@@ -137,7 +143,7 @@ export default function WordProcessor() {
           content: quill.getContents(),
           password: password,
           owner: ownerDocument,
-          user_id: user.google_id
+          user_id: user.user_id
         }
 
         socket.emit('save-document', documentData);
@@ -208,28 +214,10 @@ export default function WordProcessor() {
   };
 
   const onSubmit = async (data) => {
-      var key = CryptoJS.enc.Utf8.parse('keysuntukenkripsipasswordskripsi');
-      var iv = CryptoJS.enc.Utf8.parse('keyskeduaskripsi');
-      var passwordToArray = CryptoJS.enc.Utf8.parse(data.password);
-      var encrypted = CryptoJS.AES.encrypt(passwordToArray, key, { iv: iv });
-      var cipher = encrypted.toString();
-
-      var param = `{
-        "document_id": "${documentId}",
-        "password": "${cipher}"
-      }`;
-
-      var body = JSON.parse(param);
-      try{
-        const response = await axios.post('http://127.0.0.1:8000/api/documents/check-password', body);
-
-        if(response.status == 200){
-          setPassword(data.password);
-          handleOtpModal('accessdoc')
-        }else{
-          setPasswordError(true);
-        }
-      }catch(err){
+      if(password == data.password){
+        setPassword(data.password);
+        handleOtpModal('accessdoc');
+      }else{
         setPasswordError(true);
       }
   }
@@ -238,10 +226,16 @@ export default function WordProcessor() {
     try{
       var param = `{
         "document_id": "${documentId}",
-        "user_id": "${user.google_id}",
+        "user_id": "${user.user_id}",
         "type": "${type}"
       }`;
-      const response = await axios.post('http://127.0.0.1:8000/api/send-email-otp', JSON.parse(param));
+      const response = await axios.post('http://iwata.my.id/api/send-email-otp', JSON.parse(param), {
+        headers:{
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer ' + token,
+        }
+      });
 
       if(response.status == 200){
         if(type == 'accessdoc'){

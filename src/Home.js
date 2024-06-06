@@ -3,7 +3,7 @@ import SignIns from "./SignIns"
 import axios from 'axios'
 import { Fragment } from 'react'
 import { Disclosure, Menu, Transition } from '@headlessui/react'
-import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMagnifyingGlass, faLock, faFile } from '@fortawesome/free-solid-svg-icons'
 import { Input, FloatButton, Modal, Button } from 'antd'
@@ -12,6 +12,7 @@ import * as z from 'zod';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { v4 as uuid } from 'uuid';
+import VerifyOTP from "./VerifyOTP";
 
 const CryptoJS = require('crypto-js');
 
@@ -27,6 +28,7 @@ const validationSchema = z.object({
 
 export default function Home(){
     const [user, setUser] = useState();
+    const [token, setToken] = useState();
     const [isLogin, setIsLogin] = useState(false);
     const [loading, setLoading] = useState(true);
     const [documentList, setDocumentList] = useState([]);
@@ -34,6 +36,7 @@ export default function Home(){
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [searchFilter, setSearchFilter] = useState('');
+    const [redirectToVerifyOTP, setRedirectToVerifyOTP] = useState(false);
     const navigate = useNavigate();
 
     const defaultValues = {
@@ -49,8 +52,9 @@ export default function Home(){
 
     useEffect(() => {
         var token = localStorage.getItem('accessToken');
+        setToken(token);
         if (token) {
-            fetch(`http://127.0.0.1:8000/api/user`, {
+            fetch(`http://iwata.my.id/api/user`, {
                 headers : {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
@@ -61,11 +65,14 @@ export default function Home(){
                 if (!response.ok) {
                     throw new Error('Failed to fetch user data');
                 }
+
                 return response.json();
             })
             .then((userData) => {
                 setUser(userData);
-                console.log(userData.avatar)
+                if(userData.email_verified_at == null){
+                  setRedirectToVerifyOTP(true);
+                }
                 setLoading(false);
             })
             .catch((error) => {
@@ -80,13 +87,19 @@ export default function Home(){
 
     useEffect(() => {
         if (user) {
-            getDocuments(user.google_id);
+            getDocuments(user.user_id);
         }
     }, [user]);
 
     async function getDocuments(id){
         try{
-            const response = await axios.get(`http://127.0.0.1:8000/api/documents/get-by-user?userId=${id}&search=${searchFilter}`);
+            const response = await axios.get(`http://iwata.my.id/api/documents/get-by-user?userId=${id}&search=${searchFilter}`, {
+              headers : {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': 'Bearer ' + token,
+            }
+            });
             if(response.data){
                 setDocumentList(response.data.document);
                 setDocumentSharedList(response.data.documentShared);
@@ -122,26 +135,42 @@ export default function Home(){
       const newId = uuid();
 
       var key = CryptoJS.enc.Utf8.parse('keysuntukenkripsipasswordskripsi');
-      var iv = CryptoJS.enc.Utf8.parse('keyskeduaskripsi');
+      var iv = CryptoJS.lib.WordArray.random(16);
+
+      var pwIv = CryptoJS.enc.Utf8.parse(iv);
 
       var passwordToArray = CryptoJS.enc.Utf8.parse(data.password);
-      var encrypted = CryptoJS.AES.encrypt(passwordToArray, key, { iv: iv });
-      var cipher = encrypted.toString();
+      var encrypted = CryptoJS.AES.encrypt(passwordToArray, key, { iv: pwIv });
+
+      var cipher = iv.toString() + encrypted.toString();
 
       var repetition = Math.ceil(32/ data.password.length);
       var passwordToKey = data.password.repeat(repetition).slice(0, 32);
+      var documentIV = CryptoJS.lib.WordArray.random(16);
+
       var pwKeyToArray = CryptoJS.enc.Utf8.parse(passwordToKey);
-      var pwiv = CryptoJS.enc.Utf8.parse(user.google_id);
+      var pwiv = CryptoJS.enc.Utf8.parse(documentIV);
+
       var encryptedContent = CryptoJS.AES.encrypt(`{"ops":[]}`, pwKeyToArray, { iv: pwiv });
 
+      const combinedContent = documentIV.toString() + encryptedContent.toString();
+
       try{
-        const response = await axios.post(`http://127.0.0.1:8000/api/documents`, {
+        const response = await axios.post(`http://iwata.my.id/api/documents`, {
             document_id: newId,
             title: data.title,
             password: cipher,
-            user_id: user.google_id,
-            content: encryptedContent.toString(),
-        });
+            user_id: user.user_id,
+            content: combinedContent,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': 'Bearer ' + token,
+          }
+        }
+      );
 
         if(response){
           navigate(`/documents/${newId}`);
@@ -154,7 +183,11 @@ export default function Home(){
 
     function onSearchChange(e){
         setSearchFilter(e.target.value);
-        getDocuments(user.google_id);
+        getDocuments(user.user_id);
+    }
+
+    if (redirectToVerifyOTP) {
+      return <VerifyOTP name={user.name} email={user.email}/>;
     }
 
     return (
@@ -294,7 +327,7 @@ export default function Home(){
                                   <img
                                     className="h-8 w-8 rounded-full"
                                     referrerPolicy={'no-referrer'}
-                                    src="https://lh3.googleusercontent.com/a/ACg8ocL64jk4-XAvBmz3hKQb-chbeUrvwhZuASKN4gyK--m8HP9rS94=s96-c"
+                                    src={user.avatar}
                                     alt="avatar"
                                   />
                                 </Menu.Button>

@@ -15,6 +15,8 @@ const validationSchema = z.object({
 
 export default function OTP(props) {
     const [otpFailed, setOtpFailed] = useState(false);
+    const token = window.localStorage.getItem('accessToken');
+    console.log(token)
     const defaultValues = {
         otp: [],
     };
@@ -30,10 +32,16 @@ export default function OTP(props) {
           var param = `{
             "document_id": "${props.documentId}",
             "otp": "${otp}",
-            "user_id": "${props.user.google_id}"
+            "user_id": "${props.user.user_id}"
           }`;
     
-          const response = await axios.post('http://127.0.0.1:8000/api/verify-otp', JSON.parse(param));
+          const response = await axios.post('http://iwata.my.id/api/verify-otp', JSON.parse(param), {
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': 'Bearer ' + token,
+            }
+          });
     
           if(response.status == 200){
             setOtpFailed(false);

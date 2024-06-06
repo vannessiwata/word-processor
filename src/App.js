@@ -8,6 +8,7 @@ import GoogleCallback from './Callback';
 import Home from './Home';
 import { useEffect } from 'react';
 import NotFoundPage from './NotFound';
+import SignUp from './SignUp';
 
 // const clientId = "311597939342-9gm0olfshbia9ebfgv0e443oqbupuuf8.apps.googleusercontent.com";
 
@@ -39,6 +40,7 @@ function App() {
       <Router>
           <Routes>
               <Route path="/" element={<Home />}></Route>
+              <Route path="/signup" element={<SignUp />}></Route>
               <Route path="/auth/google" element={<GoogleCallback />}></Route>
               <Route path="/404" element={<NotFoundPage />}></Route>
               <Route path="/documents" element={<Navigate to={`/documents/${uuidV4()}`} />} exact>
