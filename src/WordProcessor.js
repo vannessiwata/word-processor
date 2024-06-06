@@ -102,7 +102,7 @@ export default function WordProcessor() {
     const towken = localStorage.getItem('accessToken');
     const s = io('https://lily-puffy-nail.glitch.me', {
       query: { token: towken },
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'],
       reconnectionAttempts: 5,
       timeout: 10000,
       upgrade: 'websocket'
