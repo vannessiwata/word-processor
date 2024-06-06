@@ -100,7 +100,7 @@ export default function WordProcessor() {
 
   useEffect(() => {
     const towken = localStorage.getItem('accessToken');
-    const s = io('http://localhost:3001', {
+    const s = io('https://lily-puffy-nail.glitch.me/', {
       query: { token: towken }
     });
     setSocket(s);
